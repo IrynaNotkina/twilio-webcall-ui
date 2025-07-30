@@ -37,6 +37,8 @@
       if (!token) return;
       device = new Twilio.Device(token, { debug: false });
       device.on("ready", () => log("✅ Готов к звонку"));
+      device.on("connect", () => log("🔗 Соединение установлено"));
+      device.on("disconnect", () => log("🔌 Соединение завершено"));
       device.on("error", (err) => log("❌ Ошибка: " + err.message));
       device.on("error", (err) => log("❌ Ошибка Twilio.Device: " + err.message));
     }
