@@ -59,7 +59,12 @@
       if (!token) return;
 
       log("🔧 Инициализация устройства...");
-      const device = new Twilio.Device(token, { debug: false });
+      const device = new Twilio.Device(token, {
+        debug: false,
+        codecPreferences: ["opus", "pcmu"],
+        fakeLocalDTMF: true,
+        enableRingingState: true
+      });
 
       device.on("ready", () => {
         log("✅ Готов к звонку. Набираем...");
