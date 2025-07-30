@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://sdk.twilio.com/js/client/v1.13/twilio.min.js"></script>
+  <title>Web Call</title>
+</head>
+<body style="text-align:center; font-family:sans-serif; padding:30px;">
+  <h2>Call Parent</h2>
+  <p>Calling: <strong><span id="phone-number"></span></strong></p>
+  <button id="call-btn">📞 Позвонить</button>
+  <p id="log" style="margin-top:20px; color:gray;"></p>
+
+  <script>
+    const phone = decodeURIComponent(window.location.href.split('Mobile=')[1] || '').trim();
+    document.getElementById("phone-number").innerText = phone;
+
+    const log = (msg) => document.getElementById("log").innerText = msg;
+    let device;
+
+    async function getToken() {
+      try {
+        const res = await fetch("https://twilio-token-server-88vq.onrender.com/generate_token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identity: "admin_operator" })
+        });
+        const data = await res.json();
+        return data.token;
+      } catch (e) {
+        log("❌ Ошибка получения токена");
+      }
+    }
+
+    async function initTwilio() {
+      const token = await getToken();
+      if (!token) return;
+      device = new Twilio.Device(token, { debug: false });
+      device.on("ready", () => log("✅ Готов к звонку"));
+      device.on("error", (err) => log("❌ Ошибка: " + err.message));
+    }
+
+    document.getElementById("call-btn").addEventListener("click", function () {
+      if (!device || !phone) return log("📵 Не готов или номер отсутствует");
+      log("⏳ Звонок...");
+      device.connect({ To: phone });
+    });
+
+    initTwilio();
+  </script>
+</body>
+</html>
