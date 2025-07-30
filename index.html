@@ -1,22 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <title>Call Parent</title>
   <script src="https://sdk.twilio.com/js/client/v1.13/twilio.min.js"></script>
-  <title>Web Call</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    button {
+      font-size: 16px;
+      padding: 8px 16px;
+    }
+    #log {
+      margin-top: 20px;
+      color: gray;
+      font-size: 18px;
+    }
+  </style>
 </head>
-<body style="text-align:center; font-family:sans-serif; padding:30px;">
+<body>
   <h2>Call Parent</h2>
   <p>Calling: <strong><span id="phone-number"></span></strong></p>
   <button id="call-btn">📞 Позвонить</button>
-  <p id="log" style="margin-top:20px; color:gray;"></p>
+  <p id="log">Ожидание действия...</p>
 
   <script>
-    const phone = decodeURIComponent(window.location.href.split('Mobile=')[1] || '').trim();
+    const phone = decodeURIComponent(
+      new URLSearchParams(window.location.search).get("Mobile") || ""
+    ).trim();
     document.getElementById("phone-number").innerText = phone;
 
-    const log = (msg) => document.getElementById("log").innerText = msg;
-    let device;
+    const log = (msg) => {
+      document.getElementById("log").innerText = msg;
+    };
 
     async function getToken() {
       try {
@@ -32,24 +51,25 @@
       }
     }
 
-    async function initTwilio() {
+    document.getElementById("call-btn").addEventListener("click", async () => {
+      if (!phone) return log("❗ Номер телефона не указан");
+
+      log("⏳ Получение токена...");
       const token = await getToken();
       if (!token) return;
-      device = new Twilio.Device(token, { debug: false });
-      device.on("ready", () => log("✅ Готов к звонку"));
-      device.on("connect", () => log("🔗 Соединение установлено"));
-      device.on("disconnect", () => log("🔌 Соединение завершено"));
+
+      log("🔧 Инициализация устройства...");
+      const device = new Twilio.Device(token, { debug: false });
+
+      device.on("ready", () => {
+        log("✅ Готов к звонку. Набираем...");
+        device.connect({ To: phone });
+      });
+
+      device.on("connect", () => log("🔗 Звонок начался"));
+      device.on("disconnect", () => log("🔚 Звонок завершён"));
       device.on("error", (err) => log("❌ Ошибка: " + err.message));
-      device.on("error", (err) => log("❌ Ошибка Twilio.Device: " + err.message));
-    }
-
-    document.getElementById("call-btn").addEventListener("click", function () {
-      if (!device || !phone) return log("📵 Не готов или номер отсутствует");
-      log("⏳ Звонок...");
-      device.connect({ To: phone });
     });
-
-    initTwilio();
   </script>
 </body>
 </html>
