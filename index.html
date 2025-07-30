@@ -67,13 +67,13 @@
     .log-positive {
       background-color: #eaf6ec;
       color: #2e7d32;
-      border: 1px solid #a5d6a7;
+      border: 2px solid #2e7d32;
     }
 
     .log-negative {
       background-color: #ffebee;
-      color: #b71c1c;
-      border: 1px solid #ef9a9a;
+      color: #e61f1f;
+      border: 2px solid #e61f1f;
     }
 
     .log-positive svg,
@@ -88,16 +88,22 @@
     }
 
     .log-negative svg {
-      fill: #b71c1c;
+      fill: #e61f1f;
+    }
+
+    svg {
+        padding-right: 20px;
+        
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Call Parent</h2>
-    <p class="phone">Calling: <strong><span id="phone-number"></span></strong></p>
+    <p class="phone">Calling:+ <strong><span id="phone-number"></span></strong></p>
     <button id="call-btn">Call</button>
-    <div id="log">Waiting for action...</div>
+
+    <div id="log">Waiting for action...⬆️</div>
   </div>
 
   <script>
@@ -137,18 +143,18 @@
         const data = await res.json();
         return data.token;
       } catch (e) {
-        log("❌ Failed to retrieve token");
+        log("Failed to retrieve token ⛔");
       }
     }
 
     document.getElementById("call-btn").addEventListener("click", async () => {
-      if (!phone) return log("❗ Phone number is missing");
+      if (!phone) return log("Phone number is missing 📵");
 
-      log("⏳ Retrieving token...");
+      log("Retrieving token...⏳");
       const token = await getToken();
       if (!token) return;
 
-      log("🔧 Initializing device...");
+      log("Initializing device...🔧");
       const device = new Twilio.Device(token, {
         debug: false,
         codecPreferences: ["opus", "pcmu"],
@@ -157,13 +163,13 @@
       });
 
       device.on("ready", () => {
-        log("✅ Ready. Dialing...");
+        log("Ready. Dialing...🛜");
         device.connect({ To: phone });
       });
 
-      device.on("connect", () => log("🔗 Call started"));
-      device.on("disconnect", () => log("🔚 Call ended"));
-      device.on("error", (err) => log("❌ Error: " + err.message));
+      device.on("connect", () => log("Call started 🆗"));
+      device.on("disconnect", () => log("Call ended 🔚"));
+      device.on("error", (err) => log("Error: " + err.message + "🆘"));
     });
   </script>
 </body>
