@@ -38,6 +38,7 @@
       device = new Twilio.Device(token, { debug: false });
       device.on("ready", () => log("✅ Готов к звонку"));
       device.on("error", (err) => log("❌ Ошибка: " + err.message));
+      device.on("error", (err) => log("❌ Ошибка Twilio.Device: " + err.message));
     }
 
     document.getElementById("call-btn").addEventListener("click", function () {
