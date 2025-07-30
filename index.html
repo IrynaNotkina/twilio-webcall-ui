@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Call Parent</title>
   <script src="https://sdk.twilio.com/js/client/v1.13/twilio.min.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background-color: #fbe3d3;
+      font-family: "Lato", sans-serif;
+      background-color: #ffffff;
       margin: 0;
       padding: 40px;
       color: #333;
@@ -15,10 +15,12 @@
     }
 
     .container {
+      font-family: "Lato", sans-serif;
       max-width: 500px;
       margin: 0 auto;
       background: #fff;
       border-radius: 8px;
+      border: 2px solid #e7e7e7;
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
       padding: 30px;
     }
@@ -31,6 +33,7 @@
     .phone {
       font-size: 18px;
       margin-bottom: 20px;
+      color: #818197;
     }
 
     button {
@@ -50,18 +53,51 @@
     }
 
     #log {
-      margin-top: 24px;
-      font-size: 18px;
-      color: #555;
+      margin-top: 20px;
+      font-size: 16px;
+      display: block;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      max-width: 100%;
+    }
+
+    .log-positive {
+      background-color: #eaf6ec;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+    }
+
+    .log-negative {
+      background-color: #ffebee;
+      color: #b71c1c;
+      border: 1px solid #ef9a9a;
+    }
+
+    .log-positive svg,
+    .log-negative svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .log-positive svg {
+      fill: #2e7d32;
+    }
+
+    .log-negative svg {
+      fill: #b71c1c;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>📞 Call Parent</h2>
-    <p class="phone">Набираем: <strong><span id="phone-number"></span></strong></p>
-    <button id="call-btn">Позвонить</button>
-    <p id="log">Ожидание действия...</p>
+    <h2>Call Parent</h2>
+    <p class="phone">Calling: <strong><span id="phone-number"></span></strong></p>
+    <button id="call-btn">Call</button>
+    <div id="log">Waiting for action...</div>
   </div>
 
   <script>
@@ -71,7 +107,24 @@
     document.getElementById("phone-number").innerText = phone;
 
     const log = (msg) => {
-      document.getElementById("log").innerText = msg;
+      const logEl = document.getElementById("log");
+      logEl.innerHTML = '';
+      logEl.className = '';
+      const iconPositive = `<svg viewBox="0 0 24 24"><path d="M9 16.17l-3.88-3.88a1 1 0 10-1.41 1.41l4.59 4.59a1 1 0 001.41 0l9.59-9.59a1 1 0 10-1.41-1.41L9 16.17z"/></svg>`;
+      const iconNegative = `<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm.75 15h-1.5v-1.5h1.5zm0-3h-1.5V7h1.5z"/></svg>`;
+
+      const positives = ["Ready", "Retrieving", "Initializing", "Call started"];
+      const negatives = ["missing", "Failed", "ended", "Error"];
+
+      if (positives.some(k => msg.includes(k))) {
+        logEl.classList.add("log-positive");
+        logEl.innerHTML = iconPositive + msg;
+      } else if (negatives.some(k => msg.includes(k))) {
+        logEl.classList.add("log-negative");
+        logEl.innerHTML = iconNegative + msg;
+      } else {
+        logEl.innerText = msg;
+      }
     };
 
     async function getToken() {
@@ -84,18 +137,18 @@
         const data = await res.json();
         return data.token;
       } catch (e) {
-        log("❌ Ошибка получения токена");
+        log("❌ Failed to retrieve token");
       }
     }
 
     document.getElementById("call-btn").addEventListener("click", async () => {
-      if (!phone) return log("❗ Номер телефона не указан");
+      if (!phone) return log("❗ Phone number is missing");
 
-      log("⏳ Получение токена...");
+      log("⏳ Retrieving token...");
       const token = await getToken();
       if (!token) return;
 
-      log("🔧 Инициализация устройства...");
+      log("🔧 Initializing device...");
       const device = new Twilio.Device(token, {
         debug: false,
         codecPreferences: ["opus", "pcmu"],
@@ -104,13 +157,13 @@
       });
 
       device.on("ready", () => {
-        log("✅ Готов к звонку. Набираем...");
+        log("✅ Ready. Dialing...");
         device.connect({ To: phone });
       });
 
-      device.on("connect", () => log("🔗 Звонок начался"));
-      device.on("disconnect", () => log("🔚 Звонок завершён"));
-      device.on("error", (err) => log("❌ Ошибка: " + err.message));
+      device.on("connect", () => log("🔗 Call started"));
+      device.on("disconnect", () => log("🔚 Call ended"));
+      device.on("error", (err) => log("❌ Error: " + err.message));
     });
   </script>
 </body>
