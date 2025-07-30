@@ -6,83 +6,62 @@
   <script src="https://sdk.twilio.com/js/client/v1.13/twilio.min.js"></script>
   <style>
     body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: #f9fafb;
-      color: #1f2937;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: start;
-      padding: 50px 20px;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      padding: 30px;
-      max-width: 400px;
-      width: 100%;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background-color: #fbe3d3;
+      margin: 0;
+      padding: 40px;
+      color: #333;
       text-align: center;
     }
 
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      padding: 30px;
+    }
+
     h2 {
-      font-size: 24px;
-      margin-bottom: 16px;
-      color: #111827;
+      color: #ea7321;
+      margin-bottom: 20px;
     }
 
-    p {
-      margin: 12px 0;
-      font-size: 16px;
-    }
-
-    #phone-number {
-      font-weight: bold;
+    .phone {
       font-size: 18px;
-      color: #374151;
+      margin-bottom: 20px;
     }
 
     button {
-      background-color: #ec4899;
-      color: white;
-      border: none;
-      padding: 10px 20px;
+      background-color: #fff;
+      color: #ea7321;
+      border: 2px solid #ea7321;
+      padding: 10px 24px;
       font-size: 16px;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background-color 0.2s ease;
+      transition: 0.3s;
     }
 
     button:hover {
-      background-color: #db2777;
+      background-color: #ea7321;
+      color: white;
     }
 
     #log {
-      margin-top: 20px;
-      font-size: 16px;
-      color: #6b7280;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: center;
-    }
-
-    .status-icon {
+      margin-top: 24px;
       font-size: 18px;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="container">
     <h2>📞 Call Parent</h2>
-    <p>Calling: <span id="phone-number"></span></p>
-    <button id="call-btn">📞 Позвонить</button>
-    <p id="log"><span class="status-icon">⌛</span>Ожидание действия...</p>
+    <p class="phone">Набираем: <strong><span id="phone-number"></span></strong></p>
+    <button id="call-btn">Позвонить</button>
+    <p id="log">Ожидание действия...</p>
   </div>
 
   <script>
@@ -91,9 +70,8 @@
     ).trim();
     document.getElementById("phone-number").innerText = phone;
 
-    const logElement = document.getElementById("log");
-    const log = (msg, icon = "⌛") => {
-      logElement.innerHTML = `<span class="status-icon">${icon}</span>${msg}`;
+    const log = (msg) => {
+      document.getElementById("log").innerText = msg;
     };
 
     async function getToken() {
@@ -106,18 +84,18 @@
         const data = await res.json();
         return data.token;
       } catch (e) {
-        log("Ошибка получения токена", "❌");
+        log("❌ Ошибка получения токена");
       }
     }
 
     document.getElementById("call-btn").addEventListener("click", async () => {
-      if (!phone) return log("Номер телефона не указан", "❗");
+      if (!phone) return log("❗ Номер телефона не указан");
 
-      log("Получение токена...", "🔐");
+      log("⏳ Получение токена...");
       const token = await getToken();
       if (!token) return;
 
-      log("Инициализация устройства...", "🛠");
+      log("🔧 Инициализация устройства...");
       const device = new Twilio.Device(token, {
         debug: false,
         codecPreferences: ["opus", "pcmu"],
@@ -126,13 +104,13 @@
       });
 
       device.on("ready", () => {
-        log("Готов к звонку. Набираем...", "✅");
+        log("✅ Готов к звонку. Набираем...");
         device.connect({ To: phone });
       });
 
-      device.on("connect", () => log("Звонок начался", "🔗"));
-      device.on("disconnect", () => log("Звонок завершён", "🔚"));
-      device.on("error", (err) => log("Ошибка: " + err.message, "❌"));
+      device.on("connect", () => log("🔗 Звонок начался"));
+      device.on("disconnect", () => log("🔚 Звонок завершён"));
+      device.on("error", (err) => log("❌ Ошибка: " + err.message));
     });
   </script>
 </body>
